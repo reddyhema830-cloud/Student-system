@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Finance Manager</title>
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --container-bg: #ffffff;
+            --text-color: #333333;
+            --primary: #4a90e2;
+            --income: #2ecc71;
+            --expense: #e74c3c;
+            --border: #e0e0e0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .manager-container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--container-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        h1, h2 {
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        /* Dashboard Overview */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        @media(min-width: 480px) {
+            .dashboard {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .card {
+            background: var(--bg-color);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .card h3 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+            color: #777;
+        }
+
+        .card p {
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        .card.balance p { color: var(--primary); }
+        .card.income p { color: var(--income); }
+        .card.expense p { color: var(--expense); }
+
+        /* Form Styling */
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        input, select {
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+        }
+
+        button {
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #357abd;
+        }
+
+        /* History Table */
+        .history-section {
+            margin-top: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.95rem;
+        }
+
+        th {
+            background-color: var(--bg-color);
+            font-weight: 600;
+        }
+
+        .type-income { color: var(--income); font-weight: bold; }
+        .type-expense { color: var(--expense); font-weight: bold; }
+
+        .delete-btn {
+            background: none;
+            color: var(--expense);
+            border: none;
+            padding: 0;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-weight: normal;
+        }
+
+        .delete-btn:hover {
+            background: none;
+            text-decoration: underline;
+            color: #c0392b;
+        }
+
+        .empty-message {
+            text-align: center;
+            color: #888;
+            padding: 20px 0;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="manager-container">
+        <h1>Finance Manager</h1>
+
+        <!-- Financial Dashboard Summary -->
+        <div class="dashboard">
+            <div class="card balance">
+                <h3>Net Balance</h3>
+                <p id="total-balance">$0.00</p>
+            </div>
+            <div class="card income">
+                <h3>Total Income</h3>
+                <p id="total-income">$0.00</p>
+            </div>
+            <div class="card expense">
+                <h3>Total Expense</h3>
+                <p id="total-expense">$0.00</p>
+            </div>
+        </div>
+
+        <!-- Add Transaction Form -->
+        <form id="transaction-form">
+            <div class="form-group">
+                <label for="description">Description</label>
+                <input type="text" id="description" placeholder="e.g., Grocery, Salary, Rent" required />
+            </div>
+            <div class="form-group">
+                <label for="amount">Amount ($)</label>
+                <input type="number" id="amount" step="0.01" min="0.01" placeholder="0.00" required />
+            </div>
+            <div class="form-group">
+                <label for="type">Transaction Type</label>
+                <select id="type" required>
+                    <option value="income">Income (+)</option>
+                    <option value="expense">Expense (-)</option>
+                </select>
+            </div>
+            <button type="submit">Add Transaction</button>
+        </form>
+
+        <!-- Transaction Ledger History -->
+        <div class="history-section">
+            <h2>Transaction History</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="transaction-ledger">
+                    <!-- Dynamic entries will load here -->
+                </tbody>
+            </table>
+            <div id="no-data-msg" class="empty-message">No transactions added yet.</div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements Configuration
+        const form = document.getElementById('transaction-form');
+        const descriptionInput = document.getElementById('description');
+        const amountInput = document.getElementById('amount');
+        const typeInput = document.getElementById('type');
+        const ledgerBody = document.getElementById('transaction-ledger');
+        const noDataMsg = document.getElementById('no-data-msg');
+
+        const totalBalanceDisplay = document.getElementById('total-balance');
+        const totalIncomeDisplay = document.getElementById('total-income');
+        const totalExpenseDisplay = document.getElementById('total-expense');
+
+        // State Initialization from Browser Storage
+        let transactions = JSON.parse(localStorage.getItem('user_transactions')) || [];
+
+        // Application Execution Logic
+        function updateFinances() {
+            let incomeTotal = 0;
+            let expenseTotal = 0;
+
+            ledgerBody.innerHTML = '';
+
+            if (transactions.length === 0) {
+                noDataMsg.style.display = 'block';
+            } else {
+                noDataMsg.style.display = 'none';
+                
+                transactions.forEach((transaction) => {
+                    const row = document.createElement('tr');
+                    
+                    const amountValue = parseFloat(transaction.amount);
+                    const prefix = transaction.type === 'income' ? '+' : '-';
+                    const cssClass = transaction.type === 'income' ? 'type-income' : 'type-expense';
+
+                    if (transaction.type === 'income') {
+                        incomeTotal += amountValue;
+                    } else {
+                        expenseTotal += amountValue;
+                    }
+
+                    row.innerHTML = `
+                        <td>${transaction.description}</td>
+                        <td class="${cssClass}">${prefix}$${amountValue.toFixed(2)}</td>
+                        <td><button class="delete-btn" onclick="removeTransaction(${transaction.id})">Delete</button></td>
+                    `;
+                    ledgerBody.appendChild(row);
+                });
+            }
+
+            const netBalance = incomeTotal - expenseTotal;
+
+            totalIncomeDisplay.innerText = `$${incomeTotal.toFixed(2)}`;
+            totalExpenseDisplay.innerText = `$${expenseTotal.toFixed(2)}`;
+            totalBalanceDisplay.innerText = `${netBalance >= 0 ? '' : '-'}$${Math.abs(netBalance).toFixed(2)}`;
+        }
+
+        function saveAndRefresh() {
+            localStorage.setItem('user_transactions', JSON.stringify(transactions));
+            updateFinances();
+        }
+
+        // Action Handlers
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const newTransaction = {
+                id: Date.now(),
+                description: descriptionInput.value.trim(),
+                amount: parseFloat(amountInput.value),
+                type: typeInput.value
+            };
+
+            transactions.push(newTransaction);
+            saveAndRefresh();
+
+            // Clear Input Form Elements
+            descriptionInput.value = '';
+            amountInput.value = '';
+            typeInput.value = 'income';
+            descriptionInput.focus();
+        });
+
